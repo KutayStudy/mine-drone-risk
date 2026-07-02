@@ -2,6 +2,8 @@ from fastapi import FastAPI, Query, HTTPException
 from backend.app.models.sensor import SensorReading
 from backend.app.models.drone import DroneStatus
 from backend.app.storage.memory_store import store
+from backend.app.services.risk_service import get_current_risk
+from backend.app.services.trend_service import analyze_temporal_trend
 
 app = FastAPI(
     title="Mine Drone Risk Backend",
@@ -48,3 +50,16 @@ def get_all_drone_statuses():
     statuses = store.get_all_drone_statuses()
 
     return {"count": len(statuses),"statuses": statuses}
+
+@app.get("/api/risk/current")
+def get_risk_current():
+    risk = get_current_risk(store.readings)
+    if risk is None:
+        return {"message": "no_readings_available","risk": None}
+    return {"message": "risk_calculated","risk": risk}
+
+
+@app.get("/api/risk/trend")
+def get_risk_trend():
+    trend = analyze_temporal_trend(store.readings)
+    return {"message": "trend_analyzed","trend": trend}
