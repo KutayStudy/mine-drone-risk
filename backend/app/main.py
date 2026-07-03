@@ -4,6 +4,8 @@ from backend.app.models.drone import DroneStatus
 from backend.app.storage.memory_store import store
 from backend.app.services.risk_service import get_current_risk
 from backend.app.services.trend_service import analyze_temporal_trend
+from backend.app.services.grid_service import build_3d_risk_map, get_risk_zones
+from backend.app.services.anomaly_service import detect_anomalies
 
 app = FastAPI(
     title="Mine Drone Risk Backend",
@@ -63,3 +65,18 @@ def get_risk_current():
 def get_risk_trend():
     trend = analyze_temporal_trend(store.readings)
     return {"message": "trend_analyzed","trend": trend}
+
+@app.get("/api/risk/map3d")
+def get_risk_map3d():
+    risk_map = build_3d_risk_map(store.readings)
+    return {"message": "map3d_generated","map": risk_map}
+
+@app.get("/api/risk/zones")
+def get_risk_zones_endpoint():
+    zones = get_risk_zones(store.readings)
+    return {"message": "risk_zones_detected","count": len(zones),"zones": zones}
+
+@app.get("/api/anomalies")
+def get_anomalies():
+    anomalies = detect_anomalies(store.readings)
+    return {"message": "anomalies_analyzed","count": len(anomalies),"anomalies": anomalies}
